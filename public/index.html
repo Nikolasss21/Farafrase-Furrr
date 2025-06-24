@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parafrase 2000+ Kata</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔄 Parafrase Professional</h1>
+            <p class="subtitle">Ubah teks Anda menjadi versi berbeda tanpa mengubah makna (Mendukung hingga 2000 kata)</p>
+        </header>
+        
+        <main>
+            <div class="input-section">
+                <div class="form-group">
+                    <label for="inputText">Masukkan teks yang ingin diparafrase:</label>
+                    <textarea id="inputText" placeholder="Ketik atau tempel teks Anda di sini..." autofocus></textarea>
+                    <div class="counter">
+                        <span id="wordCount">0</span> kata dari 2000 maksimal
+                    </div>
+                </div>
+                
+                <button id="paraphraseBtn" class="primary-btn">Parafrase Sekarang</button>
+                
+                <div class="loading" id="loadingIndicator">
+                    <div class="spinner"></div>
+                    <p>Memproses teks Anda... Harap tunggu ⏳</p>
+                    <p class="note">Proses mungkin memakan waktu beberapa menit untuk teks panjang</p>
+                </div>
+                
+                <div class="error" id="errorContainer"></div>
+            </div>
+            
+            <div class="result-section">
+                <h2>Hasil Parafrase:</h2>
+                <div class="success" id="successMessage">Parafrase berhasil!</div>
+                <div class="result-container">
+                    <div id="resultText"></div>
+                </div>
+                <button id="copyBtn" class="secondary-btn">Salin Hasil</button>
+            </div>
+        </main>
+        
+        <footer>
+            <div class="disclaimer">
+                <p><strong>Disclaimer:</strong> Hasil parafrase harus direview untuk memastikan keakuratan. Selalu sertakan sumber asli untuk menghindari plagiarisme.</p>
+            </div>
+            <p class="copyright">© 2023 Parafrase AI - Anti Plagiarisme</p>
+        </footer>
+    </div>
+    
+    <script src="/script.js"></script>
+</body>
+</html>
