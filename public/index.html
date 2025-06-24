@@ -4,31 +4,122 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parafrase 2000+ Kata</title>
-    <link rel="stylesheet" href="/styles.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+        .counter {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            display: block;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        button:hover { background: #2980b9; }
+        button:disabled { 
+            background: #bdc3c7; 
+            cursor: not-allowed;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .error {
+            display: none;
+            background: #fadbd8;
+            color: #c0392b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        .result-container {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #eee;
+            min-height: 150px;
+        }
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            textarea { height: 150px; }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🔄 Parafrase Professional</h1>
-            <p class="subtitle">Ubah teks Anda menjadi versi berbeda tanpa mengubah makna (Mendukung hingga 2000 kata)</p>
+            <p>Ubah teks Anda menjadi versi berbeda tanpa mengubah makna (Mendukung hingga 2000 kata)</p>
         </header>
         
         <main>
             <div class="input-section">
-                <div class="form-group">
-                    <label for="inputText">Masukkan teks yang ingin diparafrase:</label>
-                    <textarea id="inputText" placeholder="Ketik atau tempel teks Anda di sini..." autofocus></textarea>
-                    <div class="counter">
-                        <span id="wordCount">0</span> kata dari 2000 maksimal
-                    </div>
+                <label for="inputText">Masukkan teks:</label>
+                <textarea id="inputText" placeholder="Ketik atau tempel teks Anda di sini..." autofocus></textarea>
+                <div class="counter">
+                    <span id="wordCount">0</span> kata dari 2000 maksimal
                 </div>
                 
-                <button id="paraphraseBtn" class="primary-btn">Parafrase Sekarang</button>
+                <button id="paraphraseBtn">Parafrase Sekarang</button>
                 
                 <div class="loading" id="loadingIndicator">
-                    <div class="spinner"></div>
                     <p>Memproses teks Anda... Harap tunggu ⏳</p>
-                    <p class="note">Proses mungkin memakan waktu beberapa menit untuk teks panjang</p>
+                    <p><small>Proses mungkin memakan waktu beberapa menit untuk teks panjang</small></p>
                 </div>
                 
                 <div class="error" id="errorContainer"></div>
@@ -36,22 +127,95 @@
             
             <div class="result-section">
                 <h2>Hasil Parafrase:</h2>
-                <div class="success" id="successMessage">Parafrase berhasil!</div>
                 <div class="result-container">
                     <div id="resultText"></div>
                 </div>
-                <button id="copyBtn" class="secondary-btn">Salin Hasil</button>
+                <button id="copyBtn">Salin Hasil</button>
             </div>
         </main>
         
         <footer>
-            <div class="disclaimer">
-                <p><strong>Disclaimer:</strong> Hasil parafrase harus direview untuk memastikan keakuratan. Selalu sertakan sumber asli untuk menghindari plagiarisme.</p>
-            </div>
-            <p class="copyright">© 2023 Parafrase AI - Anti Plagiarisme</p>
+            <p>© 2023 Parafrase AI - Anti Plagiarisme</p>
         </footer>
     </div>
     
-    <script src="/script.js"></script>
+    <script>
+        // Hitung kata saat ketik
+        document.getElementById('inputText').addEventListener('input', function() {
+            const text = this.value.trim();
+            const wordCount = text ? text.split(/\s+/).length : 0;
+            document.getElementById('wordCount').textContent = wordCount;
+            
+            if (wordCount > 2000) {
+                this.style.borderColor = '#e74c3c';
+                document.getElementById('paraphraseBtn').disabled = true;
+            } else {
+                this.style.borderColor = '#3498db';
+                document.getElementById('paraphraseBtn').disabled = false;
+            }
+        });
+
+        // Fungsi proses parafrase
+        document.getElementById('paraphraseBtn').addEventListener('click', processParaphrase);
+        
+        async function processParaphrase() {
+            const text = document.getElementById('inputText').value.trim();
+            const wordCount = text ? text.split(/\s+/).length : 0;
+            
+            if (!text) {
+                showError('Harap masukkan teks terlebih dahulu');
+                return;
+            }
+            
+            if (wordCount > 2000) {
+                showError('Teks melebihi batas maksimal 2000 kata');
+                return;
+            }
+            
+            // Tampilkan loading
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('errorContainer').style.display = 'none';
+            document.getElementById('resultText').innerHTML = '';
+            document.getElementById('copyBtn').style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/paraphrase', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                
+                const data = await response.json();
+                
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    document.getElementById('resultText').innerHTML = 
+                        `<p>${data.result.replace(/\n/g, '<br>')}</p>`;
+                    document.getElementById('copyBtn').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                showError('Terjadi kesalahan: ' + error.message);
+            }
+        }
+        
+        // Fungsi untuk menampilkan error
+        function showError(message) {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.textContent = message;
+            errorContainer.style.display = 'block';
+        }
+        
+        // Fungsi untuk menyalin hasil
+        document.getElementById('copyBtn').addEventListener('click', function() {
+            const resultText = document.getElementById('resultText').textContent;
+            navigator.clipboard.writeText(resultText)
+                .then(() => alert('Teks berhasil disalin!'))
+                .catch(err => alert('Gagal menyalin teks: ' + err));
+        });
+    </script>
 </body>
 </html>
