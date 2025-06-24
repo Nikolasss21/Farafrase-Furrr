@@ -11,10 +11,6 @@
       "dest": "/public/index.html"
     },
     {
-      "src": "/script.js",
-      "dest": "/public/script.js"
-    },
-    {
       "src": "/api/paraphrase",
       "dest": "/api/paraphrase.py"
     }
