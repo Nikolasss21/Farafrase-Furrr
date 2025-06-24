@@ -1,11 +1,13 @@
 from http import HTTPStatus
-from flask import jsonify, request
+from flask import Flask, jsonify, request
 from utils.paraphraser import Paraphraser
 
+app = Flask(__name__)
 paraphraser = Paraphraser()
 
-def handler(req):
-    # Handle CORS
+@app.route('/api/paraphrase', methods=['POST', 'OPTIONS'])
+def handle_paraphrase():
+    # Handle CORS preflight
     if request.method == 'OPTIONS':
         return jsonify({}), HTTPStatus.NO_CONTENT, {
             'Access-Control-Allow-Origin': '*',
@@ -39,3 +41,8 @@ def handler(req):
     return jsonify({'error': 'Method not allowed'}), HTTPStatus.METHOD_NOT_ALLOWED, {
         'Access-Control-Allow-Origin': '*'
     }
+
+# Wrapper for Vercel
+def handler(req):
+    with app.app_context():
+        return handle_paraphrase()
