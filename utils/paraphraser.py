@@ -4,7 +4,7 @@ import time
 
 class Paraphraser:
     def __init__(self):
-        self.api_token = os.getenv("HF_API_TOKEN")
+        self.api_token = os.getenv("HF_API_TOKEN", "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")
         self.api_url = "https://api-inference.huggingface.co/models/cahya/t5-base-indonesian-paraphrase"
     
     def chunk_text(self, text, max_chunk_words=300):
@@ -27,9 +27,6 @@ class Paraphraser:
         return chunks
 
     def paraphrase_large_text(self, text):
-        if not self.api_token:
-            return "Error: Hugging Face API token not set"
-        
         chunks = self.chunk_text(text)
         paraphrased_chunks = []
         
@@ -42,7 +39,7 @@ class Paraphraser:
                     self.api_url, 
                     headers=headers, 
                     json=payload,
-                    timeout=30
+                    timeout=120  # Timeout 2 menit
                 )
                 
                 if response.status_code == 200:
@@ -54,11 +51,11 @@ class Paraphraser:
                         paraphrased_chunks.append(chunk)
                 elif response.status_code == 503:
                     # Model masih loading, tunggu dan coba lagi
-                    time.sleep(10)
+                    time.sleep(15)
                     return self.paraphrase_large_text(text)
                 else:
-                    paraphrased_chunks.append(chunk)
-            except Exception:
-                paraphrased_chunks.append(chunk)
+                    paraphrased_chunks.append(f"[Error: {response.status_code}] {chunk}")
+            except Exception as e:
+                paraphrased_chunks.append(f"[Exception] {str(e)}")
         
         return " ".join(paraphrased_chunks)
