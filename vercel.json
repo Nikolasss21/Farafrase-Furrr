@@ -1,13 +1,5 @@
-mkdir parafrase-app
-cd parafrase-app
-mkdir -p api public utils
-touch api/paraphrase.py
-touch utils/paraphraser.py
-touch requirements.txt
-touch vercel.json
-touch runtime.txt
-touch .gitignore
 {
+  "version": 2,
   "builds": [
     {
       "src": "api/paraphrase.py",
@@ -21,13 +13,14 @@ touch .gitignore
     },
     {
       "src": "/api/paraphrase",
-      "dest": "/api/paraphrase.py"
+      "dest": "/api/paraphrase.py",
+      "methods": ["POST"]
     }
   ],
   "functions": {
     "api/paraphrase.py": {
-      "memory": 3008,
-      "maxDuration": 300
+      "memory": 1024,
+      "maxDuration": 10
     }
   }
 }
