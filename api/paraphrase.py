@@ -1,15 +1,17 @@
-from http import HTTPStatus
-from flask import Flask, jsonify, request
+from flask import Flask, request, jsonify
 from utils.paraphraser import Paraphraser
+import os
 
 app = Flask(__name__)
+
+# Inisialisasi paraphraser
 paraphraser = Paraphraser()
 
 @app.route('/api/paraphrase', methods=['POST', 'OPTIONS'])
-def handle_paraphrase():
+def paraphrase_handler():
     # Handle CORS preflight
     if request.method == 'OPTIONS':
-        return jsonify({}), HTTPStatus.NO_CONTENT, {
+        return jsonify({}), 204, {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type'
@@ -17,32 +19,36 @@ def handle_paraphrase():
     
     if request.method == 'POST':
         try:
+            # Ambil data JSON
             data = request.get_json()
             text = data.get('text', '')
             
-            if not text:
-                return jsonify({'error': 'Text is required'}), HTTPStatus.BAD_REQUEST
+            if not text or not text.strip():
+                return jsonify({
+                    'error': 'Teks tidak boleh kosong',
+                    'details': 'Silakan masukkan teks yang ingin diparafrase'
+                }), 400
             
-            # Process text
+            # Proses parafrase
             result = paraphraser.paraphrase_large_text(text)
             
-            return jsonify({'result': result}), HTTPStatus.OK, {
+            return jsonify({'result': result}), 200, {
                 'Access-Control-Allow-Origin': '*'
             }
         
         except Exception as e:
             return jsonify({
-                'error': 'Internal server error',
+                'error': 'Terjadi kesalahan server',
                 'details': str(e)
-            }), HTTPStatus.INTERNAL_SERVER_ERROR, {
+            }), 500, {
                 'Access-Control-Allow-Origin': '*'
             }
     
-    return jsonify({'error': 'Method not allowed'}), HTTPStatus.METHOD_NOT_ALLOWED, {
+    return jsonify({'error': 'Metode tidak diizinkan'}), 405, {
         'Access-Control-Allow-Origin': '*'
     }
 
-# Wrapper for Vercel
-def handler(req):
+# Wrapper untuk Vercel
+def app_handler(request):
     with app.app_context():
-        return handle_paraphrase()
+        return paraphrase_handler()
