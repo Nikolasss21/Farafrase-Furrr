@@ -1,61 +1,64 @@
-from transformers import pipeline, AutoTokenizer
-import threading
+import os
+import requests
+import time
 
 class Paraphraser:
     def __init__(self):
-        self.model_loaded = False
-        self.tokenizer = None
-        self.paraphraser = None
-        self.processing_lock = threading.Lock()
+        self.api_token = os.getenv("HF_API_TOKEN")
+        self.api_url = "https://api-inference.huggingface.co/models/cahya/t5-base-indonesian-paraphrase"
     
-    def initialize(self, model_name="cahya/t5-base-indonesian-paraphrase"):
-        """Muat model hanya sekali saat inisialisasi"""
-        if not self.model_loaded:
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-            self.paraphraser = pipeline(
-                'text2text-generation', 
-                model=model_name,
-                device=-1  # Gunakan CPU (Vercel tidak support GPU)
-            )
-            self.model_loaded = True
-    
-    def chunk_text(self, text, max_chunk_size=300):
-        """Membagi teks besar menjadi bagian-bagian kecil"""
-        if not self.tokenizer:
-            self.initialize()
-        
-        tokens = self.tokenizer.tokenize(text)
+    def chunk_text(self, text, max_chunk_words=300):
+        words = text.split()
         chunks = []
         current_chunk = []
-        current_length = 0
+        current_count = 0
         
-        for token in tokens:
-            current_chunk.append(token)
-            current_length += 1
-            
-            if current_length >= max_chunk_size:
-                chunks.append(self.tokenizer.convert_tokens_to_string(current_chunk))
+        for word in words:
+            current_chunk.append(word)
+            current_count += 1
+            if current_count >= max_chunk_words:
+                chunks.append(" ".join(current_chunk))
                 current_chunk = []
-                current_length = 0
+                current_count = 0
         
         if current_chunk:
-            chunks.append(self.tokenizer.convert_tokens_to_string(current_chunk))
+            chunks.append(" ".join(current_chunk))
         
         return chunks
-    
+
     def paraphrase_large_text(self, text):
-        """Memparafrase teks besar dengan chunking"""
+        if not self.api_token:
+            return "Error: Hugging Face API token not set"
+        
         chunks = self.chunk_text(text)
         paraphrased_chunks = []
         
         for chunk in chunks:
-            with self.processing_lock:
-                result = self.paraphraser(
-                    f"parafrase: {chunk}",
-                    max_length=512,
-                    num_beams=5,
-                    num_return_sequences=1
-                )[0]['generated_text']
-                paraphrased_chunks.append(result.replace("parafrase: ", ""))
+            payload = {"inputs": f"parafrase: {chunk}"}
+            headers = {"Authorization": f"Bearer {self.api_token}"}
+            
+            try:
+                response = requests.post(
+                    self.api_url, 
+                    headers=headers, 
+                    json=payload,
+                    timeout=30
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if isinstance(result, list) and len(result) > 0 and 'generated_text' in result[0]:
+                        generated_text = result[0]['generated_text'].replace("parafrase: ", "")
+                        paraphrased_chunks.append(generated_text)
+                    else:
+                        paraphrased_chunks.append(chunk)
+                elif response.status_code == 503:
+                    # Model masih loading, tunggu dan coba lagi
+                    time.sleep(10)
+                    return self.paraphrase_large_text(text)
+                else:
+                    paraphrased_chunks.append(chunk)
+            except Exception:
+                paraphrased_chunks.append(chunk)
         
         return " ".join(paraphrased_chunks)
