@@ -1,3 +1,12 @@
+mkdir parafrase-app
+cd parafrase-app
+mkdir -p api public utils
+touch api/paraphrase.py
+touch utils/paraphraser.py
+touch requirements.txt
+touch vercel.json
+touch runtime.txt
+touch .gitignore
 from flask import Flask, request, jsonify
 from utils.paraphraser import Paraphraser
 import os
